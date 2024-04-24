@@ -1,60 +1,72 @@
-import {blur, Img, Node, NodeProps, Rect, saturate, Txt, Video} from "@motion-canvas/2d";
+import {blur, Img, Line, Node, NodeProps, Rect, saturate, Txt, Video} from "@motion-canvas/2d";
 import { PossibleColor } from "@motion-canvas/core";
 import { Noise } from "./android/noise";
 import {PRIMARY} from "../scenes/example.js";
+import {ComponentChild} from "@motion-canvas/2d/src/lib/components/types.js";
 
 interface ChatProps {
     name: string;
     message: string;
+    line2?: string;
     author?: string;
     color: PossibleColor;
-    locked?: boolean;
     hideBorder?: boolean;
     messages?: number;
     read?: boolean;
-    avatar: string;
+    feed?: boolean;
+    background?: boolean;
+    avatar: string | ComponentChild;
 }
 
 export class ChatList extends Node {
     constructor(props?: NodeProps & ChatProps) {
         super(props);
-        this.add(<Rect alignItems="stretch" gap={5} marginTop={2} grow={1}>
-            {props.locked ? <Video play={true} margin={10} src="/pd.mp4" radius={50} width={90} /> :
-                <Img margin={10} src={props.avatar} radius={50} width={90} />}
+        this.add(<>
+            <Rect alignItems="stretch" gap={5} marginTop={props.background ? 0 : 2} grow={1}
+                       fill={props.background ? "#f6f6f6" : null}>
+                {typeof props.avatar === "string" ? <Img margin={10} src={props.avatar} radius={50} width={90} /> : <>
+                    {props.avatar}
+                </>}
 
-            <Rect direction="column" grow={1} justifyContent="space-between">
-                <Rect grow={1} alignItems="center">
-                    <Rect direction="column" gap={8}>
-                        <Rect direction="row" alignItems="start">
-                            {props.locked ? <Img src="/lock.svg"/> : <></>}
-                            <Txt fontFamily="Roboto" fill="black" fontSize={28} fontWeight={500} offsetX={-1}>
-                                {props.name}
-                            </Txt>
-                        </Rect>
+                <Rect direction="column" grow={1} justifyContent="space-between">
+                    <Rect grow={1} alignItems="start">
+                        <Rect direction="column" paddingTop={10} paddingBottom={10}>
+                            <Rect direction="row" alignItems="start">
+                                {props.feed ? <Img size={30} src="/bolt.svg"/> : <></>}
+                                <Txt fontFamily="SF Pro" fill="black" fontSize={28} fontWeight={500} offsetX={-1}>
+                                    {props.name}
+                                </Txt>
+                            </Rect>
+                            <Rect direction="column" fontFamily="SF Pro" fontSize={25} fontWeight={400}>
+                                {props.author ? <Txt fill="black">{props.author}</Txt> : <></>}
 
-                        {props.locked ? (<Noise height={28} width={150}/>) :
-                            (<Txt fontFamily="Roboto" fill="black" fontSize={25} fontWeight={400} offsetX={-1} opacity={0.6}>
-                                {props.author ? <Txt fill={props.color}>{props.author}:</Txt> : <></>} {props.message}
-                            </Txt>)}
-                    </Rect>
-                    <Rect grow={1} alignItems="end" alignSelf="center" padding={15} direction="column" gap={3}>
-                        <Rect direction="row">
-                            {props.read ? <Img height={25} marginRight={4} src="/read.svg"/> : <></>}
-                            <Txt fontFamily="Roboto" fill="black" fontSize={22} fontWeight={400} offsetX={-1} opacity={0.6}>
-                                9:04
-                            </Txt>
+                                <Txt fill="#8E8E93">
+                                    {props.line2 ? props.line2 : <></>}
+                                </Txt>
+                                <Txt fill="#8E8E93">
+                                    {props.message}
+                                </Txt>
+                            </Rect>
                         </Rect>
-                        <Rect fill={PRIMARY} filters={[saturate(0.5)]} padding={8} radius={100}
-                              width={props.messages?.toString().length > 1 ? 40: 35}
-                              justifyContent="center" opacity={props.messages ? 1 : 0}>
-                            <Txt fontFamily="Roboto" fill="white" fontSize={22} fontWeight={400} offsetX={-1} marginBottom={-5}>
-                                {props.messages ? props.messages.toString() : "0"}
-                            </Txt>
+                        <Rect grow={1} alignItems="end" alignSelf="center" paddingRight={15} direction="column" gap={20}>
+                            <Rect direction="row">
+                                {props.read ? <Img height={25} marginRight={4} src="/read.svg"/> : <></>}
+                                <Txt fontFamily="SF Pro" fill="black" fontSize={22} fontWeight={400} offsetX={-1} opacity={0.6}>
+                                    9:04
+                                </Txt>
+                            </Rect>
+                            <Rect fill={PRIMARY} padding={6} radius={20}
+                                  width={props.messages?.toString().length > 1 ? 45: 35}
+                                  justifyContent="center" opacity={props.messages ? 1 : 0}>
+                                <Txt fontFamily="Roboto" fill="white" fontSize={22} fontWeight={400} offsetX={-1} marginBottom={-5}>
+                                    {props.messages ? props.messages.toString() : "0"}
+                                </Txt>
+                            </Rect>
                         </Rect>
                     </Rect>
+                    <Rect height={1} fill={"black"} opacity={props.hideBorder || props.feed ? 0 : 0.3} />
                 </Rect>
-                <Rect height={1} fill={"black"} opacity={props.hideBorder ? 0 : 0.3} />
             </Rect>
-        </Rect>);
+        </>);
     }
 }

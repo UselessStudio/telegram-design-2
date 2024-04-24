@@ -1,10 +1,10 @@
 import { Circle, ComponentChildren, Img, Node, NodeProps, Rect } from "@motion-canvas/2d";
-import { createRef, easeInOutCubic, Reference } from "@motion-canvas/core";
+import {createRef, easeInOutCubic, easeOutExpo, Reference} from "@motion-canvas/core";
 
 export const SCREEN_WIDTH = 640;
 export const SCREEN_HEIGHT = 1280;
 export const SCREEN_BORDER = 20;
-const SCREEN_RADIUS = 64;
+const SCREEN_RADIUS = 100;
 
 
 
@@ -32,18 +32,20 @@ export class PhoneScreen extends Node {
                 </Rect>
                 <Img src="/statusbar.svg"
                      ref={this.statusbar}
+                     fill={"#F6F6F6"}
                      width={SCREEN_WIDTH - SCREEN_BORDER*2}
                      y={-SCREEN_HEIGHT/2+SCREEN_BORDER+10}
                      offsetY={-1}/>
-                <Img src="/navbar.svg"
+                <Img src="/home.svg"
                      width={SCREEN_WIDTH - SCREEN_BORDER*2}
-                     y={SCREEN_HEIGHT/2}
+                     y={SCREEN_HEIGHT/2 - 15}
                      offsetY={1}/>
                 <Rect radius={SCREEN_RADIUS - SCREEN_BORDER / 2} x={0} y={0}
                     width={SCREEN_WIDTH - SCREEN_BORDER}
                     height={SCREEN_HEIGHT - SCREEN_BORDER}
                     stroke="black" lineWidth={SCREEN_BORDER}>
-                    <Circle x={0} y={-SCREEN_HEIGHT / 2 + SCREEN_BORDER * 2.5} size={30} fill="black" />
+                    {/*<Circle x={0} y={-SCREEN_HEIGHT / 2 + SCREEN_BORDER * 2.5} size={30} fill="black" />*/}
+                    <Rect x={0} y={-SCREEN_HEIGHT / 2 + SCREEN_BORDER * 3} width={170} height={50} fill="black" radius={50} />
                 </Rect>
             </Rect>,
         );
@@ -59,7 +61,8 @@ export class PhoneScreen extends Node {
         this.container().add(<Rect direction="column" ref={this.secondScreen} fill="white">
             {node}
         </Rect>)
-        yield this.secondScreen().margin.left(-SCREEN_WIDTH + SCREEN_BORDER * 2, 0.5, easeInOutCubic);
+        yield this.secondScreen().margin.left(-SCREEN_WIDTH + SCREEN_BORDER * 2, 0.5, easeOutExpo);
+        // yield this.firstScreen().margin.left(-SCREEN_WIDTH*0.5, 0.5, easeine);
         yield* this.firstScreen().opacity(0.3, 0.5, easeInOutCubic);
         this.firstScreen().remove();
         this.secondScreen().margin.left(0);

@@ -1,16 +1,9 @@
 import {Circle, Node, NodeProps, Txt} from "@motion-canvas/2d";
 import {
     all,
-    chain,
     createRef,
-    easeInCubic,
-    easeInOutCubic,
-    easeOutCubic,
-    easeOutExpo,
-    easeOutSine,
-    map,
+    easeInOutCubic, easeInOutQuad,
     Reference,
-    tween
 } from "@motion-canvas/core";
 
 export class ClickMarker extends Node {
@@ -24,6 +17,28 @@ export class ClickMarker extends Node {
         this.add(<Circle ref={this.circle} size={200} stroke="rgba(36, 175, 255, 0.4)" lineWidth={50} />);
     }
 
+    public *scroll(x: number, y: number) {
+        this.position.x(x).y(y);
+        this.circle().opacity(0).size(200).lineWidth(50);
+        yield* all(
+            this.circle().size(100, 0.1, easeInOutCubic),
+            this.circle().lineWidth(40, 0.1, easeInOutCubic),
+            this.circle().opacity(1, 0.1, easeInOutCubic),
+        );
+    }
+
+    public *endScroll(x: number, y: number) {
+        yield* all(
+            this.position.x(x, 1, easeInOutQuad),
+            this.position.y(y, 1, easeInOutQuad),
+        );
+        yield* all(
+            this.circle().opacity(0.5, 0.2, easeInOutCubic),
+            this.circle().lineWidth(0, 0.2, easeInOutCubic),
+            this.circle().size(300, 0.2, easeInOutCubic),
+        );
+    }
+
     public *click(x: number, y: number) {
         this.position.x(x).y(y);
         this.circle().opacity(0).size(200).lineWidth(50);
@@ -33,6 +48,7 @@ export class ClickMarker extends Node {
             this.circle().lineWidth(50, 0.2, easeInOutCubic),
         );
     }
+
     public *endClick() {
         yield* all(
             this.circle().size(100, 0.1, easeInOutCubic),

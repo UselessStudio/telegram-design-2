@@ -1,5 +1,5 @@
-import { Circle, ComponentChildren, Img, Node, NodeProps, Rect } from "@motion-canvas/2d";
-import {createRef, easeInOutCubic, easeOutExpo, Reference} from "@motion-canvas/core";
+import { ComponentChildren, Img, Node, NodeProps, Rect } from "@motion-canvas/2d";
+import {all, createRef, easeInOutCubic, easeOutExpo, Reference} from "@motion-canvas/core";
 
 export const SCREEN_WIDTH = 640;
 export const SCREEN_HEIGHT = 1280;
@@ -61,9 +61,10 @@ export class PhoneScreen extends Node {
         this.container().add(<Rect direction="column" ref={this.secondScreen} fill="white">
             {node}
         </Rect>)
-        yield this.secondScreen().margin.left(-SCREEN_WIDTH + SCREEN_BORDER * 2, 0.5, easeOutExpo);
-        // yield this.firstScreen().margin.left(-SCREEN_WIDTH*0.5, 0.5, easeine);
-        yield* this.firstScreen().opacity(0.3, 0.5, easeInOutCubic);
+        yield* all(
+            this.secondScreen().margin.left(-SCREEN_WIDTH + SCREEN_BORDER * 2, 0.5, easeOutExpo),
+            this.firstScreen().opacity(0.3, 0.3, easeInOutCubic)
+        );
         this.firstScreen().remove();
         this.secondScreen().margin.left(0);
         this.firstScreen = this.secondScreen;

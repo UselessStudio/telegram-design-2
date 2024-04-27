@@ -1,8 +1,8 @@
-import {Rect, makeScene2D, Gradient, Txt, Img, Circle, Line} from '@motion-canvas/2d';
+import {Rect, makeScene2D, Gradient, Txt, Img} from '@motion-canvas/2d';
 import {
   all,
-  createRef, easeInOutCubic,
-  easeOutExpo,
+  createRef, createSignal, easeInOutCubic, easeInOutQuad,
+  easeOutExpo, linear,
   map,
   tween,
   waitFor
@@ -52,10 +52,26 @@ export default makeScene2D(function* (view) {
   });
 
   const zoom = createRef<Rect>();
-  view.add(<Rect ref={zoom} width={SCREEN_WIDTH-SCREEN_BORDER*2}
-                 height={119} layout fill="white" radius={30} y={-27}
-                 clip={true}
-                 stroke={"rgba(0,0,0,0.22)"}>
+  const w = SCREEN_WIDTH-SCREEN_BORDER*2;
+  const h = 112;
+  const signal = createSignal(0);
+  const zoomGrad = new Gradient({
+    type: "linear",
+    fromX: -w/2-10,
+    fromY: -h/2,
+    toX: w-10,
+    toY: h,
+    stops: [
+      {offset: createSignal(() => Math.max(0, signal()-0.2)), color: "rgba(255,255,255,0)"},
+      {offset: signal, color: "rgba(69,202,255,0.4)"},
+      {offset: createSignal(() => Math.min(1, signal()+0.2)), color: "rgba(255,255,255,0)"}
+    ]
+  });
+  const highlight = createRef<Rect>();
+  view.add(<Rect ref={zoom} width={w}
+                 height={h} layout fill="white" radius={30} y={-29}
+                 clip={true}>
+    <Rect ref={highlight} layout={false} width={w} height={h} fill={zoomGrad}></Rect>
     <FeedItem background={false}/>
   </Rect>);
   zoom().opacity(0.4);
@@ -64,26 +80,52 @@ export default makeScene2D(function* (view) {
       zoom().lineWidth(3, 0.4, easeOutExpo),
       zoom().opacity(1, 0.4, easeOutExpo),
   );
-  yield* waitFor(0.7);
+  yield* all(
+      signal(1, 1, linear),
+      highlight().opacity(1, 0.1, easeInOutCubic)
+  );
   yield* all(
       zoom().scale(1, 0.4, easeOutExpo),
       zoom().lineWidth(0, 0.4, easeOutExpo),
   );
-  yield* zoom().opacity(0.1, 0.6, easeInOutCubic);
+  yield* zoom().opacity(0.1, 0.2, easeInOutCubic);
   zoom().remove();
 
   const click = createRef<ClickMarker>();
   view.add(<ClickMarker zIndex={10} ref={click}/>);
   yield* click().click(0, -20);
   yield* click().endClick();
+  const messages = createRef<Img>();
   yield* all(
       title().position.y(-700, 0.5, easeInOutCubic),
       screen().position.y(0, 0.5, easeInOutCubic),
       screen().scale(0.8, 0.5, easeInOutCubic),
-      screen().transitionTo(<Rect direction="column" fill="white" height={SCREEN_HEIGHT}>
+      screen().transitionTo(<Rect direction="column" fill="white" height={SCREEN_HEIGHT} clip={true}>
         <FeedHeader/>
+        <Img width={SCREEN_WIDTH} src="/background.svg" zIndex={-3}/>
+        <Img ref={messages} width={SCREEN_WIDTH - SCREEN_BORDER * 2} x={-SCREEN_WIDTH /2} y={-SCREEN_HEIGHT/2 + 170}
+             src="/messages.png" offsetX={-1} offsetY={-1} layout={false} zIndex={-2}/>
+        <Img layout={false} y={SCREEN_HEIGHT/2-SCREEN_BORDER*2}
+             offsetY={1}
+             width={SCREEN_WIDTH-SCREEN_BORDER*2}
+             x={-SCREEN_BORDER} src="/feed-bottom.svg" zIndex={2}/>
       </Rect>),
       waitFor(0.2)
   );
-  yield* waitFor(2);
+
+  for (let i = 0; i < 5; i++) {
+    yield* click().scroll(100, 300);
+    yield* all(
+        messages().y(messages().y() -850, 1, easeInOutQuad),
+        click().endScroll(100, -300)
+    );
+  }
+
+
+  yield* waitFor(0.5);
+
+  yield* tween(0.8, value => {
+    title().position.y(map(-425, 0, easeOutExpo(value)));
+    screen().position.y(map(150, 800, easeOutExpo(value)));
+  });
 });
